@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <style>
+        html, body,
+         
+
+         #menu {
+    list-style-type: none;
+    width: 1000px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e7e7e7;
+    background-color: #f3f3f3;
+}
+
+li {
+    float: left;
+    width: 20%;
+}
+
+li a {
+    display: block;
+    color: #666;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover:not(.active) {
+    background-color: #ddd;
+}
+
+li a.active {
+    color: white;
+    background-color: slategray;
+} 
+                #judul {
+            top: 5px;
+            font-size: 30px ;
+            width: 1010px;
+            border-bottom: 5px solid dimgray;
+            border-top: 2px solid slategray;
+            border-style: inside;
+
+
+        }
+
+ 
+         #map {
+            top: 5px;
+            left: 0px;
+            right: 0px;
+            width: 1000px;
+            height: 600px;
+            padding: 0px;
+            margin: 0px;
+            border: 5px solid grey;
+        }
+
+
+        #informasi {
+            position: absolute;
+            padding: 5px;
+            top: 102px;
+            width: 300px;
+            margin-left: 1020px;
+            height: 591px;
+            border: 5px solid dimgray;
+            background: white;
+             }
+
+        .list 
+        li {    
+    list-style-type: square;
+    list-style-position: left;
+    right: 50px;
+    width: 200px;
+    width: 100%
+    margin: 0;
+    padding: 0;
+    }
+        
+        </style>
+        <title></title>
+    </head>
+    <body style="background-color:lightgrey">
+        <div id="judul" align="center">SENDANGSARI SMARTVILLAGE</div>
+         <div id="Menu">
+         <ul id="menu">
+            <li><a class="active" href="/RTM/">RTM</a></li>
+            <li><a href="/SPR/">SARPRAS</a></li>
+            <li><a href="/AGRIKULTUR/">AGRIKULTUR</a></li>
+            <li><a href="/PRODUK/">PRODUK</a></li>
+            <li><a href="/www.smartvillagesendangsari.com/">BERANDA</a></li>
+        </ul>
+    </div>
+        <div id="map">
+        </div>
+         <div id="informasi">
+            <p style="text-align:justify;">Smartvillage Sendangsari merupakan suatu sistem integrasi dari berbagai aspek pembangunan berkelanjutan dan contoh dari aspek tersebut adalah aspek ekonomi dan sosial. Peta Rumah Tangga Miskin Desa Sendangsari adalah salah salah satu contoh produk dari aspek ekonomi dan sosial tersebut. Peta  ini disajikan pada tampilan web yang berisi informasi di Desa Sendangsari dengan menggunakan sejumlah 50 rumah penduduk sebagai sampel diberbagai dusun di Desa Sendangsari. Tujuannya adalah untuk membangun sistem kontrol perekonomian. Informasi tersebut antara lain mencakup:
+            <ul class="list">
+                <li>Kelas-kelas Rumah Tangga Miskin</li>
+                <li>Pendapatan setiap bulan</li>
+                <li>Nama Ketua Keluarga</li>
+                <li>Jenis Pekerjaan</li>
+                <li>Tanggungan setiap keluarga</li>
+                <li>Foto setiap rumah penduduk</li>
+            </ul>
+
+            </p>
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/BatasDusun_0.js"></script>
+        <script src="data/RTM_1.js"></script>
+        <script src="data/Perairan_2.js"></script>
+        <script src="data/JaringanJalan_3.js"></script>
+        <script src="data/Tidak_Miskin_4.js"></script>
+        <script src="data/Miskin_5.js"></script>
+        <script src="data/Hampir_Miskin_6.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:true,
+        }).fitBounds([[-7.8261252663,110.14254254],[-7.81444256693,110.174978672]]);
+
+        var hash = new L.Hash(map);
+        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        var bounds_group = new L.featureGroup([]);
+        var basemap0 = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors,<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+            maxZoom: 28
+        });
+
+        basemap0.addTo(map);
+        function setBounds() {
+        }
+        function pop_BatasDusun_0(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Name'] !== null ? Autolinker.link(String(feature.properties['Name'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Luas_Ha'] !== null ? Autolinker.link(String(feature.properties['Luas_Ha'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_BatasDusun_0_0(feature) {
+            switch(String(feature.properties['Name'])) {
+                case 'Gegunung':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(254,235,226,0.9)',
+            }
+                    break;
+                case 'Girinyono':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(253,211,208,0.9)',
+            }
+                    break;
+                case 'Klegen':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(252,186,190,0.9)',
+            }
+                    break;
+                case 'Kroco':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(250,155,177,0.9)',
+            }
+                    break;
+                case 'Mrungi':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(248,121,166,0.9)',
+            }
+                    break;
+                case 'Paingan':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,87,156,0.9)',
+            }
+                    break;
+                case 'Pereng':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(214,52,146,0.9)',
+            }
+                    break;
+                case 'Secang':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(189,24,136,0.9)',
+            }
+                    break;
+                case 'Serang':
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(155,12,127,0.9)',
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_BatasDusun_0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.9)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(122,1,119,0.9)',
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_BatasDusun_0');
+        map.getPane('pane_BatasDusun_0').style.zIndex = 400;
+        map.getPane('pane_BatasDusun_0').style['mix-blend-mode'] = 'normal';
+        var layer_BatasDusun_0 = new L.geoJson(json_BatasDusun_0, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_BatasDusun_0',
+            onEachFeature: pop_BatasDusun_0,
+            style: style_BatasDusun_0_0,
+        });
+        bounds_group.addLayer(layer_BatasDusun_0);
+        map.addLayer(layer_BatasDusun_0);
+        function pop_RTM_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ID_BGN'] !== null ? Autolinker.link(String(feature.properties['ID_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Jenis_BGN'] !== null ? Autolinker.link(String(feature.properties['Jenis_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RTM'] !== null ? Autolinker.link(String(feature.properties['RTM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nomer'] !== null ? Autolinker.link(String(feature.properties['Nomer'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pendapatan'] !== null ? Autolinker.link(String(feature.properties['Pendapatan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nama_KK'] !== null ? Autolinker.link(String(feature.properties['Nama_KK'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pekerjaan'] !== null ? Autolinker.link(String(feature.properties['Pekerjaan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Tanggungan'] !== null ? Autolinker.link(String(feature.properties['Tanggungan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Foto'] !== null ? Autolinker.link(String(feature.properties['Foto'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_RTM_1_0() {
+            return {
+                pane: 'pane_RTM_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(175,155,220,1.0)',
+            }
+        }
+        map.createPane('pane_RTM_1');
+        map.getPane('pane_RTM_1').style.zIndex = 401;
+        map.getPane('pane_RTM_1').style['mix-blend-mode'] = 'normal';
+        var layer_RTM_1 = new L.geoJson(json_RTM_1, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_RTM_1',
+            onEachFeature: pop_RTM_1,
+            style: style_RTM_1_0,
+        });
+        bounds_group.addLayer(layer_RTM_1);
+        map.addLayer(layer_RTM_1);
+        function pop_Perairan_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? Autolinker.link(String(feature.properties['OBJECTID'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FID_Perair'] !== null ? Autolinker.link(String(feature.properties['FID_Perair'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['osm_id'] !== null ? Autolinker.link(String(feature.properties['osm_id'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['aeroway'] !== null ? Autolinker.link(String(feature.properties['aeroway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['amenity'] !== null ? Autolinker.link(String(feature.properties['amenity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['blockage'] !== null ? Autolinker.link(String(feature.properties['blockage'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['bridge'] !== null ? Autolinker.link(String(feature.properties['bridge'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['building'] !== null ? Autolinker.link(String(feature.properties['building'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['capacity'] !== null ? Autolinker.link(String(feature.properties['capacity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['covered'] !== null ? Autolinker.link(String(feature.properties['covered'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['depth'] !== null ? Autolinker.link(String(feature.properties['depth'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['diameter'] !== null ? Autolinker.link(String(feature.properties['diameter'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['highway'] !== null ? Autolinker.link(String(feature.properties['highway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['industrial'] !== null ? Autolinker.link(String(feature.properties['industrial'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['landuse'] !== null ? Autolinker.link(String(feature.properties['landuse'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['layer'] !== null ? Autolinker.link(String(feature.properties['layer'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['man_made'] !== null ? Autolinker.link(String(feature.properties['man_made'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['name'] !== null ? Autolinker.link(String(feature.properties['name'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['natural'] !== null ? Autolinker.link(String(feature.properties['natural'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['oneway'] !== null ? Autolinker.link(String(feature.properties['oneway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['operator'] !== null ? Autolinker.link(String(feature.properties['operator'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['parking'] !== null ? Autolinker.link(String(feature.properties['parking'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['public_tra'] !== null ? Autolinker.link(String(feature.properties['public_tra'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pump'] !== null ? Autolinker.link(String(feature.properties['pump'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['railway'] !== null ? Autolinker.link(String(feature.properties['railway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['smoothness'] !== null ? Autolinker.link(String(feature.properties['smoothness'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['social_fac'] !== null ? Autolinker.link(String(feature.properties['social_fac'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['surface'] !== null ? Autolinker.link(String(feature.properties['surface'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['tunnel'] !== null ? Autolinker.link(String(feature.properties['tunnel'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['water'] !== null ? Autolinker.link(String(feature.properties['water'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['waterway'] !== null ? Autolinker.link(String(feature.properties['waterway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['wheelchair'] !== null ? Autolinker.link(String(feature.properties['wheelchair'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['width'] !== null ? Autolinker.link(String(feature.properties['width'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['z_index'] !== null ? Autolinker.link(String(feature.properties['z_index'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FID_batas_'] !== null ? Autolinker.link(String(feature.properties['FID_batas_'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Name_1'] !== null ? Autolinker.link(String(feature.properties['Name_1'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Luas_Ha'] !== null ? Autolinker.link(String(feature.properties['Luas_Ha'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? Autolinker.link(String(feature.properties['Shape_Leng'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Perairan_2_0(feature) {
+            switch(String(feature.properties['waterway'])) {
+                case 'ditch':
+                    return {
+                pane: 'pane_Perairan_2',
+                opacity: 1,
+                color: 'rgba(149,205,58,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+            }
+                    break;
+                case 'river':
+                    return {
+                pane: 'pane_Perairan_2',
+                opacity: 1,
+                color: 'rgba(192,223,255,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'round',
+                weight: 3.0,
+                fillOpacity: 0,
+            }
+                    break;
+                case 'stream':
+                    return {
+                pane: 'pane_Perairan_2',
+                opacity: 1,
+                color: 'rgba(214,107,120,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Perairan_2');
+        map.getPane('pane_Perairan_2').style.zIndex = 402;
+        map.getPane('pane_Perairan_2').style['mix-blend-mode'] = 'normal';
+        var layer_Perairan_2 = new L.geoJson(json_Perairan_2, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_Perairan_2',
+            onEachFeature: pop_Perairan_2,
+            style: style_Perairan_2_0,
+        });
+        bounds_group.addLayer(layer_Perairan_2);
+        map.addLayer(layer_Perairan_2);
+        function pop_JaringanJalan_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? Autolinker.link(String(feature.properties['OBJECTID'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FID_Jalan_'] !== null ? Autolinker.link(String(feature.properties['FID_Jalan_'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['osm_id'] !== null ? Autolinker.link(String(feature.properties['osm_id'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['aeroway'] !== null ? Autolinker.link(String(feature.properties['aeroway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['amenity'] !== null ? Autolinker.link(String(feature.properties['amenity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['blockage'] !== null ? Autolinker.link(String(feature.properties['blockage'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['bridge'] !== null ? Autolinker.link(String(feature.properties['bridge'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['building'] !== null ? Autolinker.link(String(feature.properties['building'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['capacity'] !== null ? Autolinker.link(String(feature.properties['capacity'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['covered'] !== null ? Autolinker.link(String(feature.properties['covered'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['depth'] !== null ? Autolinker.link(String(feature.properties['depth'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['diameter'] !== null ? Autolinker.link(String(feature.properties['diameter'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['highway'] !== null ? Autolinker.link(String(feature.properties['highway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['industrial'] !== null ? Autolinker.link(String(feature.properties['industrial'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['landuse'] !== null ? Autolinker.link(String(feature.properties['landuse'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['layer'] !== null ? Autolinker.link(String(feature.properties['layer'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['man_made'] !== null ? Autolinker.link(String(feature.properties['man_made'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['name'] !== null ? Autolinker.link(String(feature.properties['name'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['natural'] !== null ? Autolinker.link(String(feature.properties['natural'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['oneway'] !== null ? Autolinker.link(String(feature.properties['oneway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['operator'] !== null ? Autolinker.link(String(feature.properties['operator'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['parking'] !== null ? Autolinker.link(String(feature.properties['parking'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['public_tra'] !== null ? Autolinker.link(String(feature.properties['public_tra'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pump'] !== null ? Autolinker.link(String(feature.properties['pump'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['railway'] !== null ? Autolinker.link(String(feature.properties['railway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['smoothness'] !== null ? Autolinker.link(String(feature.properties['smoothness'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['social_fac'] !== null ? Autolinker.link(String(feature.properties['social_fac'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['surface'] !== null ? Autolinker.link(String(feature.properties['surface'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['tunnel'] !== null ? Autolinker.link(String(feature.properties['tunnel'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['water'] !== null ? Autolinker.link(String(feature.properties['water'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['waterway'] !== null ? Autolinker.link(String(feature.properties['waterway'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['wheelchair'] !== null ? Autolinker.link(String(feature.properties['wheelchair'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['width'] !== null ? Autolinker.link(String(feature.properties['width'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['z_index'] !== null ? Autolinker.link(String(feature.properties['z_index'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FID_batas_'] !== null ? Autolinker.link(String(feature.properties['FID_batas_'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Name_1'] !== null ? Autolinker.link(String(feature.properties['Name_1'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Luas_Ha'] !== null ? Autolinker.link(String(feature.properties['Luas_Ha'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? Autolinker.link(String(feature.properties['Shape_Leng'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_JaringanJalan_3_0(feature) {
+            switch(String(feature.properties['highway'])) {
+                case 'residential':
+                    return {
+                pane: 'pane_JaringanJalan_3',
+                opacity: 1,
+                color: 'rgba(227,26,28,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+            }
+                    break;
+                case 'service':
+                    return {
+                pane: 'pane_JaringanJalan_3',
+                opacity: 1,
+                color: 'rgba(240,128,175,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+            }
+                    break;
+                case 'track':
+                    return {
+                pane: 'pane_JaringanJalan_3',
+                opacity: 1,
+                color: 'rgba(118,59,213,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+            }
+                    break;
+                case 'unclassified':
+                    return {
+                pane: 'pane_JaringanJalan_3',
+                opacity: 1,
+                color: 'rgba(255,127,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1,
+                fillOpacity: 0,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_JaringanJalan_3');
+        map.getPane('pane_JaringanJalan_3').style.zIndex = 403;
+        map.getPane('pane_JaringanJalan_3').style['mix-blend-mode'] = 'normal';
+        var layer_JaringanJalan_3 = new L.geoJson(json_JaringanJalan_3, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_JaringanJalan_3',
+            onEachFeature: pop_JaringanJalan_3,
+            style: style_JaringanJalan_3_0,
+        });
+        bounds_group.addLayer(layer_JaringanJalan_3);
+        map.addLayer(layer_JaringanJalan_3);
+        function pop_Tidak_Miskin_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">ID_BGN</th>\
+                        <td>' + (feature.properties['ID_BGN'] !== null ? Autolinker.link(String(feature.properties['ID_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Jenis_BGN'] !== null ? Autolinker.link(String(feature.properties['Jenis_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RTM'] !== null ? Autolinker.link(String(feature.properties['RTM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nomer'] !== null ? Autolinker.link(String(feature.properties['Nomer'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pendapatan'] !== null ? Autolinker.link(String(feature.properties['Pendapatan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nama_KK'] !== null ? Autolinker.link(String(feature.properties['Nama_KK'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pekerjaan'] !== null ? Autolinker.link(String(feature.properties['Pekerjaan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Tanggungan'] !== null ? Autolinker.link(String(feature.properties['Tanggungan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\/:]/g, '_').trim() + '">' : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Tidak_Miskin_4_0() {
+            return {
+                pane: 'pane_Tidak_Miskin_4',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(74,212,64,1.0)',
+            }
+        }
+        map.createPane('pane_Tidak_Miskin_4');
+        map.getPane('pane_Tidak_Miskin_4').style.zIndex = 404;
+        map.getPane('pane_Tidak_Miskin_4').style['mix-blend-mode'] = 'normal';
+        var layer_Tidak_Miskin_4 = new L.geoJson(json_Tidak_Miskin_4, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_Tidak_Miskin_4',
+            onEachFeature: pop_Tidak_Miskin_4,
+            style: style_Tidak_Miskin_4_0,
+        });
+        bounds_group.addLayer(layer_Tidak_Miskin_4);
+        map.addLayer(layer_Tidak_Miskin_4);
+        function pop_Miskin_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ID_BGN'] !== null ? Autolinker.link(String(feature.properties['ID_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Jenis_BGN'] !== null ? Autolinker.link(String(feature.properties['Jenis_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RTM'] !== null ? Autolinker.link(String(feature.properties['RTM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nomer'] !== null ? Autolinker.link(String(feature.properties['Nomer'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pendapatan'] !== null ? Autolinker.link(String(feature.properties['Pendapatan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nama_KK'] !== null ? Autolinker.link(String(feature.properties['Nama_KK'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pekerjaan'] !== null ? Autolinker.link(String(feature.properties['Pekerjaan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Tanggungan'] !== null ? Autolinker.link(String(feature.properties['Tanggungan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\/:]/g, '_').trim() + '">' : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Miskin_5_0() {
+            return {
+                pane: 'pane_Miskin_5',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(227,26,28,1.0)',
+            }
+        }
+        map.createPane('pane_Miskin_5');
+        map.getPane('pane_Miskin_5').style.zIndex = 405;
+        map.getPane('pane_Miskin_5').style['mix-blend-mode'] = 'normal';
+        var layer_Miskin_5 = new L.geoJson(json_Miskin_5, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_Miskin_5',
+            onEachFeature: pop_Miskin_5,
+            style: style_Miskin_5_0,
+        });
+        bounds_group.addLayer(layer_Miskin_5);
+        map.addLayer(layer_Miskin_5);
+        function pop_Hampir_Miskin_6(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ID_BGN'] !== null ? Autolinker.link(String(feature.properties['ID_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Jenis_BGN'] !== null ? Autolinker.link(String(feature.properties['Jenis_BGN'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RTM'] !== null ? Autolinker.link(String(feature.properties['RTM'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nomer'] !== null ? Autolinker.link(String(feature.properties['Nomer'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pendapatan'] !== null ? Autolinker.link(String(feature.properties['Pendapatan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Nama_KK'] !== null ? Autolinker.link(String(feature.properties['Nama_KK'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Pekerjaan'] !== null ? Autolinker.link(String(feature.properties['Pekerjaan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Tanggungan'] !== null ? Autolinker.link(String(feature.properties['Tanggungan'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\/:]/g, '_').trim() + '">' : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Hampir_Miskin_6_0() {
+            return {
+                pane: 'pane_Hampir_Miskin_6',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(250,240,48,1.0)',
+            }
+        }
+        map.createPane('pane_Hampir_Miskin_6');
+        map.getPane('pane_Hampir_Miskin_6').style.zIndex = 406;
+        map.getPane('pane_Hampir_Miskin_6').style['mix-blend-mode'] = 'normal';
+        var layer_Hampir_Miskin_6 = new L.geoJson(json_Hampir_Miskin_6, {
+            attribution: '<a href=""></a>',
+            pane: 'pane_Hampir_Miskin_6',
+            onEachFeature: pop_Hampir_Miskin_6,
+            style: style_Hampir_Miskin_6_0,
+        });
+        bounds_group.addLayer(layer_Hampir_Miskin_6);
+        map.addLayer(layer_Hampir_Miskin_6);
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'<img src="legend/Hampir_Miskin_6.png" /> Hampir_Miskin': layer_Hampir_Miskin_6,'<img src="legend/Miskin_5.png" /> Miskin': layer_Miskin_5,'<img src="legend/Tidak_Miskin_4.png" /> Tidak_Miskin': layer_Tidak_Miskin_4,'Jaringan Jalan<br /><table><tr><td style="text-align: center;"><img src="legend/JaringanJalan_3_Arteri0.png" /></td><td>Arteri</td></tr><tr><td style="text-align: center;"><img src="legend/JaringanJalan_3_Sekunder1.png" /></td><td>Sekunder</td></tr><tr><td style="text-align: center;"><img src="legend/JaringanJalan_3_Lokal2.png" /></td><td>Lokal</td></tr><tr><td style="text-align: center;"><img src="legend/JaringanJalan_3_Setapak3.png" /></td><td>Setapak</td></tr></table>': layer_JaringanJalan_3,'Perairan<br /><table><tr><td style="text-align: center;"><img src="legend/Perairan_2_Selokan0.png" /></td><td>Selokan</td></tr><tr><td style="text-align: center;"><img src="legend/Perairan_2_Sungai1.png" /></td><td>Sungai</td></tr><tr><td style="text-align: center;"><img src="legend/Perairan_2_Irigasi2.png" /></td><td>Irigasi</td></tr></table>': layer_Perairan_2,'<img src="legend/RTM_1.png" /> RTM': layer_RTM_1,'Batas Dusun<br /><table><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Gegunung0.png" /></td><td>Gegunung</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Girinyono1.png" /></td><td>Girinyono</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Klegen2.png" /></td><td>Klegen</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Kroco3.png" /></td><td>Kroco</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Mrungi4.png" /></td><td>Mrungi</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Paingan5.png" /></td><td>Paingan</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Pereng6.png" /></td><td>Pereng</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Secang7.png" /></td><td>Secang</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_Serang8.png" /></td><td>Serang</td></tr><tr><td style="text-align: center;"><img src="legend/BatasDusun_0_9.png" /></td><td></td></tr></table>': layer_BatasDusun_0,}).addTo(map);
+        setBounds();
+        var i = 0;
+        layer_BatasDusun_0.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Name'] !== null?String('<div style="color: #000000; font-size: 7pt; font-family: \'MS Shell Dlg 2\', sans-serif;">' + layer.feature.properties['Name']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_BatasDusun_0'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_Tidak_Miskin_4.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Nama_KK'] !== null?String('<div style="color: #33a02c; font-size: 6pt; font-family: \'MS Shell Dlg 2\', sans-serif;">' + layer.feature.properties['Nama_KK']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Tidak_Miskin_4'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_Miskin_5.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Nama_KK'] !== null?String('<div style="color: #e31a1c; font-size: 6pt; font-family: \'MS Shell Dlg 2\', sans-serif;">' + layer.feature.properties['Nama_KK']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Miskin_5'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_Hampir_Miskin_6.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Nama_KK'] !== null?String('<div style="color: #e1e122; font-size: 6pt; font-family: \'MS Shell Dlg 2\', sans-serif;">' + layer.feature.properties['Nama_KK']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Hampir_Miskin_6'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        map.addControl(new L.Control.Search({
+            layer: layer_RTM_1,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'Nama_KK'}));
+        resetLabels([layer_BatasDusun_0,layer_TidakMiskin_4,layer_Miskin_5,layer_HampirMiskin_6]);
+        map.on("zoomend", function(){
+            resetLabels([layer_BatasDusun_0,layer_TidakMiskin_4,layer_Miskin_5,layer_HampirMiskin_6]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_BatasDusun_0,layer_TidakMiskin_4,layer_Miskin_5,layer_HampirMiskin_6]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_BatasDusun_0,layer_TidakMiskin_4,layer_Miskin_5,layer_HampirMiskin_6]);
+        });
+                 
+        </script>
+    </body>
+</html>
